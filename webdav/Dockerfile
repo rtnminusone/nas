@@ -1,5 +1,5 @@
 # 1단계: 빌드 환경 (Go 컴파일러)
-FROM golang:1.22-alpine AS builder
+FROM golang:1.25-alpine AS builder
 WORKDIR /app
 
 # WebDAV 공식 확장 패키지 다운로드 및 초기화
