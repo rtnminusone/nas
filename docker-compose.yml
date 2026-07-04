@@ -6,7 +6,7 @@ services:
       dockerfile: Dockerfile
     image: rtnminusone/nas-webdav:v1.0.0
     container_name: nas-webdav
-    restart: always
+    restart: unless-stopped
     ports:
       - "8081:80"
     env_file:
@@ -20,7 +20,7 @@ services:
   filebrowser:
     image: filebrowser/filebrowser:v2.26.0
     container_name: nas-filebrowser
-    restart: always
+    restart: unless-stopped
     ports:
       - "8082:80"
     volumes:
