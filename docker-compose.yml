@@ -1,0 +1,44 @@
+services:
+  # 1. WebDAV 서비스 (윈도우 탐색기 연동)
+  webdav:
+    build:
+      context: ./webdav
+      dockerfile: Dockerfile
+    image: rtnminusone/nas-webdav:v1.0.0
+    container_name: nas-webdav
+    restart: always
+    ports:
+      - "8081:80"
+    env_file:
+      - ./webdav/.env
+    volumes:
+      - nas-data:/data
+    networks:
+      - gateway-network
+
+  # 2. FileBrowser 서비스 (웹 브라우저 대용량 업로드)
+  filebrowser:
+    image: filebrowser/filebrowser:v2.26.0
+    container_name: nas-filebrowser
+    restart: always
+    ports:
+      - "8082:80"
+    volumes:
+      - nas-data:/srv
+      - ./filebrowser/config:/config
+    networks:
+      - gateway-network
+    environment:
+      - FB_DATABASE=/config/filebrowser.db
+
+volumes:
+  nas-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /mnt/c/Users/Administrator/.vscode/nas
+
+networks:
+  gateway-network:
+    external: true
