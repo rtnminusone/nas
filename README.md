@@ -1,0 +1,2 @@
+# nas
+create external drive
