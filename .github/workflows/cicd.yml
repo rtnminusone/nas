@@ -1,0 +1,80 @@
+name: nas
+
+on:
+  push:
+    branches:
+      - main  # 💡 실제 배포 브랜치명으로 맞추세요
+
+# 🌟 중요: GHCR에 이미지를 업로드(write)할 수 있는 권한을 깃허브 액션에 부여합니다.
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  # [1단계] GHCR 로그인 및 빌드/푸시
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 도커허브 대신 깃허브 자체 패키지 저장소(GHCR)에 로그인합니다.
+      - name: Log in to GitHub Container Registry (GHCR)
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}       # 액션을 실행한 유저명 (자동 할당)
+          password: ${{ secrets.GITHUB_TOKEN }} # 깃허브가 자체 발급하는 일회용 토큰 (자동 할당)
+
+      #🌟 [핵심 추가] 빌드 직전에 깃허브 시크릿을 읽어서 .env 파일을 물리적으로 생성합니다.
+      - name: Create .env file
+        run: |
+          # 1) 루트 폴더의 docker-compose가 .env를 읽는 구조
+          echo "${{ secrets.SERVER_WEBDAV_ENV }}" > webdav/.env
+
+      # 이미지를 빌드하고 GHCR 주소로 푸시합니다.
+      - name: Build images using Docker Compose
+        run: |
+          docker compose build
+
+      # 빌드된 이미지를 GHCR 저장소로 보냅니다.
+      - name: Push images using Docker Compose
+        run: |
+          docker compose push
+
+  # [2단계] 서버 원격 접속 및 실시간 배포
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup SSH Environment
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SERVER_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -p ${{ secrets.SERVER_PORT }} -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy via SSH Command
+        run: |
+          ssh -p ${{ secrets.SERVER_PORT }} ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
+            echo "🍏 서버 접속 완벽 성공! 전체 서비스 배포를 시작합니다."
+
+            # 최상단 도커 컴포즈 파일이 있는 서버 경로로 이동
+            cd ${{ secrets.SERVER_PATH }}
+
+            # 1) 새 코드 및 도커 이미지 다운로드
+            git pull
+            docker compose pull
+
+            # 2) 컨테이너 전체 재시작
+            docker compose up -d --remove-orphans
+
+            # 3) 구버전 이미지 찌꺼기 청소
+            docker image prune -f
+
+            echo "🍎 모든 서비스 배포 완료"
+          EOF

@@ -4,7 +4,7 @@ services:
     build:
       context: ./webdav
       dockerfile: Dockerfile
-    image: rtnminusone/nas-webdav:v1.0.0
+    image: ghcr.io/rtnminusone/nas-webdav:v1.0.0
     container_name: nas-webdav
     restart: unless-stopped
     ports:
