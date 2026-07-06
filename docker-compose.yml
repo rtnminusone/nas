@@ -13,7 +13,6 @@ services:
     volumes:
       - nas-data:/data
     networks:
-      - tunnel-network
       - gateway-network
 
   # 2. FileBrowser 서비스 (웹 브라우저 대용량 업로드)
@@ -25,7 +24,6 @@ services:
       - nas-data:/srv
       - ./filebrowser/config:/config
     networks:
-      - tunnel-network
       - gateway-network
     environment:
       - FB_DATABASE=/config/filebrowser.db
@@ -39,7 +37,5 @@ volumes:
       device: /mnt/c/Users/Administrator/.vscode/nas
 
 networks:
-  tunnel-network:
-    external: true
   gateway-network:
     external: true
