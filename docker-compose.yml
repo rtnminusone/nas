@@ -1,4 +1,5 @@
 services:
+
   # 1. WebDAV 서비스 (윈도우 탐색기 연동)
   webdav:
     build:
@@ -7,13 +8,12 @@ services:
     image: ghcr.io/rtnminusone/nas-webdav:v1.0.0
     container_name: nas-webdav
     restart: unless-stopped
-    ports:
-      - "8081:80"
     env_file:
       - ./webdav/.env
     volumes:
       - nas-data:/data
     networks:
+      - tunnel-network
       - gateway-network
 
   # 2. FileBrowser 서비스 (웹 브라우저 대용량 업로드)
@@ -21,12 +21,11 @@ services:
     image: filebrowser/filebrowser:v2.26.0
     container_name: nas-filebrowser
     restart: unless-stopped
-    ports:
-      - "8082:80"
     volumes:
       - nas-data:/srv
       - ./filebrowser/config:/config
     networks:
+      - tunnel-network
       - gateway-network
     environment:
       - FB_DATABASE=/config/filebrowser.db
@@ -40,5 +39,7 @@ volumes:
       device: /mnt/c/Users/Administrator/.vscode/nas
 
 networks:
+  tunnel-network:
+    external: true
   gateway-network:
     external: true
