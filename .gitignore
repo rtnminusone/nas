@@ -1,13 +1,13 @@
-# 🔒 보안 및 설정 파일 (절대 업로드 금지)
+# env files
 *.env
 .env
 
-# 🗄️ 데이터베이스 및 상태 파일 (데이터 보존용)
+# database setting files
 *.db
 *.sqlite
 filebrowser/config/filebrowser.db
 
-# 💻 OS 및 에디터 찌꺼기 파일
+# OS and Editor files
 .DS_Store
 Thumbs.db
 .vscode/
